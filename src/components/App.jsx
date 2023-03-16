@@ -1,80 +1,59 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import Statistics from './Feedback/Statistics';
 import FeedbackOptions from './Feedback/FeedbackOptions';
-import Section from './Feedback/Section';
 import Notification from './Feedback/Notification';
-import { FeedbackContainer, FeedbackTitle } from './Feedback/Feedback.styled';
+import Statistics from './Feedback/Statistics';
+import { FeedbackContainer } from './Feedback/Feedback.styled';
 
 class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      feedback: { good: 0, neutral: 0, bad: 0 },
-    };
-  }
+  state = {
+    good: 0,
+    neutral: 0,
+    bad: 0,
+  };
 
   handleFeedback = option => {
-    this.setState(prevState => ({
-      feedback: {
-        ...prevState.feedback,
-        [option]: prevState.feedback[option] + 1,
-      },
-    }));
+    this.setState(prevState => ({ [option]: prevState[option] + 1 }));
   };
 
   countTotalFeedback = () => {
-    return Object.values(this.state.feedback).reduce(
-      (total, value) => total + value,
-      0
-    );
+    const { good, neutral, bad } = this.state;
+    return good + neutral + bad;
   };
 
   countPositiveFeedbackPercentage = () => {
+    const { good } = this.state;
     const total = this.countTotalFeedback();
-    const positive = this.state.feedback.good;
-    return total > 0 ? Math.round((positive / total) * 100) : 0;
+    return total > 0 ? Math.round((good / total) * 100) : 0;
   };
 
   render() {
+    const { good, neutral, bad } = this.state;
     const totalFeedback = this.countTotalFeedback();
+    const positivePercentage = this.countPositiveFeedbackPercentage();
 
     return (
       <FeedbackContainer>
-        <Section title="Please leave feedback">
-          <FeedbackOptions
-            options={['good', 'neutral', 'bad']}
-            onLeaveFeedback={this.handleFeedback}
-            colors={['green', 'gray', 'red']}
+        <h1>Please leave feedback</h1>
+        <FeedbackOptions
+          options={Object.keys(this.state)}
+          onLeaveFeedback={this.handleFeedback}
+          colors={['green', 'gray', 'red']}
+        />
+        {totalFeedback > 0 ? (
+          <Statistics
+            good={good}
+            neutral={neutral}
+            bad={bad}
+            total={totalFeedback}
+            positivePercentage={positivePercentage}
           />
-        </Section>
-        <FeedbackTitle title="Statistics">
-          {totalFeedback > 0 ? (
-            <Statistics
-              good={this.state.feedback.good}
-              neutral={this.state.feedback.neutral}
-              bad={this.state.feedback.bad}
-              total={totalFeedback}
-              positivePercentage={this.countPositiveFeedbackPercentage()}
-            />
-          ) : (
-            <Notification message="There is no feedback" />
-          )}
-        </FeedbackTitle>
+        ) : (
+          <Notification message="There is no feedback" />
+        )}
       </FeedbackContainer>
     );
   }
 }
 
-App.propTypes = {
-  feedback: PropTypes.shape({
-    good: PropTypes.number,
-    neutral: PropTypes.number,
-    bad: PropTypes.number,
-  }),
-  handleFeedback: PropTypes.func,
-  countTotalFeedback: PropTypes.func,
-  countPositiveFeedbackPercentage: PropTypes.func,
-};
-
 export default App;
+
